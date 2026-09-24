@@ -26,13 +26,13 @@ export default function AdminLoginPage() {
       }
 
       if (response.status === 401) {
-        setError('Invalid credentials')
+        setError('Usuario o contraseña incorrectos.')
         return
       }
 
-      setError('Unable to sign in. Please try again.')
+      setError('No se pudo ingresar. Intente de nuevo.')
     } catch {
-      setError('Unable to sign in. Please try again.')
+      setError('No se pudo ingresar. Intente de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -42,14 +42,14 @@ export default function AdminLoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-brand-bg px-4 py-8">
       <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="mb-6 space-y-1 text-center">
-          <h1 className="text-2xl font-semibold text-primary">Admin</h1>
+          <h1 className="text-2xl font-semibold text-primary">Administración</h1>
           <p className="text-sm text-gray-500">Ingresa para administrar las donaciones</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
             <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-              Username
+              Usuario
             </label>
             <input
               id="username"
@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
 
           <div className="space-y-1.5">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
+              Contraseña
             </label>
             <input
               id="password"
@@ -90,7 +90,7 @@ export default function AdminLoginPage() {
             disabled={loading}
             className="min-h-11 w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? 'Ingresando…' : 'Ingresar'}
           </button>
         </form>
       </div>
