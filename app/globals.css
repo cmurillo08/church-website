@@ -1,0 +1,11 @@
+@config "../tailwind.config.mjs";
+@import "tailwindcss";
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: #fafaf7;
+  color: #1f2937;
+}
