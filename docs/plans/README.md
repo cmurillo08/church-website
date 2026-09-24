@@ -5,7 +5,7 @@ One row per phase. Update **Status** as work lands — first thing to check in a
 | Phase | Doc | Status | Notes |
 |---|---|---|---|
 | 1 — Setup & health check | [phase-1-setup-health-check.md](phase-1-setup-health-check.md) | ✅ Done | Next.js + Tailwind scaffold, `/health` page and `/api/health` endpoint. |
-| 2 — Foundation & data model | [phase-2-foundation-data-model.md](phase-2-foundation-data-model.md) | ⬜ Planned | Migrations for `items`, `donations`, `donation_items`, `site_settings`. DB plumbing + auth shell already in place. |
+| 2 — Foundation & data model | [phase-2-foundation-data-model.md](phase-2-foundation-data-model.md) | ✅ Done | Migration `20260924_create_donation_tables.sql`; shared helpers in `lib/donations.js` (counters, create/list donations, status changes, settings); `npm run seed` for local demo data. |
 | 3 — Admin | [phase-3-admin.md](phase-3-admin.md) | ⬜ Planned | Donaciones list (received/cancelled), Artículos, Configuración. |
 | 4 — Public donation page | [phase-4-public-donation-page.md](phase-4-public-donation-page.md) | ⬜ Planned | Pledge form + live countdown per item. Decisions confirmed. |
 | 5 — CSV reports | [phase-5-csv-reports.md](phase-5-csv-reports.md) | ⬜ Planned | Export filtered donations (e.g. pending for one item) to CSV for manual reminders. |

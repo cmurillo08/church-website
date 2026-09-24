@@ -25,6 +25,11 @@ A donation-pledge web app for our church's building fund (new church building). 
 - Donations are anonymous **publicly** — public endpoints return aggregates only, never names or phones. Admin sees them.
 - Currency is colones (₡), integers. Phone is 8 digits (Costa Rica). UI is Spanish, with simple wording.
 
+## Language
+- **English** for code, database (tables, columns, migrations), docs/planning, commit messages, and identifiers.
+- **Spanish** for everything client-facing: all text visible on the website (public page and `/admin`) — labels, buttons, headings, messages, errors, validation text, empty states, page titles/metadata, and CSV report headers/content. Keep the wording simple.
+- Don't leak English into the UI, and don't translate code identifiers or DB names into Spanish.
+
 ## Conventions
 - No TypeScript, no Prettier.
 - Mobile-first: design and test at ~390px before desktop; admin lists are cards on mobile, tables on `lg`.

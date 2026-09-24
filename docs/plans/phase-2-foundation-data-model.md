@@ -16,8 +16,15 @@ Create the database tables the admin (Phase 3) and public page (Phase 4) both de
 - Users table — auth is a single shared credential (`.env`)
 
 ## Migration SQL
-File: `migrations/20260925_create_donation_tables.sql` (date = the day it's written). Runs inside the schema set by `PGSCHEMA` via `search_path`, so no schema prefix in the SQL.
+File: `migrations/20260924_create_donation_tables.sql` (date = the day it's written). Runs inside the schema set by `PGSCHEMA` via `search_path`, so no schema prefix in the SQL. As the initial migration it also bootstraps the schema and the migrations bookkeeping table — `scripts/migrate.js` no longer creates it; a missing `church_donations.schema_migrations` means a fresh DB, and the script refuses to run without `PGSCHEMA`.
 ```sql
+CREATE SCHEMA IF NOT EXISTS church_donations;
+
+CREATE TABLE schema_migrations (
+  filename TEXT PRIMARY KEY,
+  applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE items (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL CHECK (length(btrim(name)) BETWEEN 1 AND 100),

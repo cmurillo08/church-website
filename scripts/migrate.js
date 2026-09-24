@@ -7,22 +7,25 @@ import db from '../lib/db.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const migrationsDir = path.join(__dirname, '..', 'migrations');
 
-async function ensureMigrationsTable() {
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS schema_migrations (
-      filename TEXT PRIMARY KEY,
-      applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `);
-}
+// The app schema and its schema_migrations table are created by the initial
+// migration, so a missing table just means nothing has been applied yet.
+// PGSCHEMA is required: without it, unqualified CREATE TABLEs would land in
+// public. Its format is validated in lib/db.js.
+const schema = process.env.PGSCHEMA;
+const migrationsTable = `"${schema}".schema_migrations`;
 
 async function getAppliedMigrations() {
-  const result = await db.query('SELECT filename FROM schema_migrations');
+  const exists = await db.query('SELECT to_regclass($1) IS NOT NULL AS exists', [migrationsTable]);
+  if (!exists.rows[0].exists) return new Set();
+
+  const result = await db.query(`SELECT filename FROM ${migrationsTable}`);
   return new Set(result.rows.map((row) => row.filename));
 }
 
 async function run() {
-  await ensureMigrationsTable();
+  if (!schema) {
+    throw new Error('PGSCHEMA is not set (expected church_donations).');
+  }
   const applied = await getAppliedMigrations();
 
   const files = fs
@@ -42,7 +45,7 @@ async function run() {
     console.log(`[migrate] Applying ${filename}...`);
     await db.runTransaction(async (client) => {
       await client.query(sql);
-      await client.query('INSERT INTO schema_migrations (filename) VALUES ($1)', [filename]);
+      await client.query(`INSERT INTO ${migrationsTable} (filename) VALUES ($1)`, [filename]);
     });
     console.log(`[migrate] Applied ${filename}`);
   }
