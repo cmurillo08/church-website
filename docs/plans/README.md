@@ -5,7 +5,14 @@ One row per phase. Update **Status** as work lands — first thing to check in a
 | Phase | Doc | Status | Notes |
 |---|---|---|---|
 | 1 — Setup & health check | [phase-1-setup-health-check.md](phase-1-setup-health-check.md) | ✅ Done | Next.js + Tailwind scaffold, `/health` page and `/api/health` endpoint. |
-| 2+ | — | ⬜ To be planned | Waiting on feature ideas from the team. |
+| 2 — Foundation & data model | [phase-2-foundation-data-model.md](phase-2-foundation-data-model.md) | ⬜ Planned | Migrations for `items`, `donations`, `donation_items`, `site_settings`. DB plumbing + auth shell already in place. |
+| 3 — Admin | [phase-3-admin.md](phase-3-admin.md) | ⬜ Planned | Donaciones list (received/cancelled), Artículos, Configuración. |
+| 4 — Public donation page | [phase-4-public-donation-page.md](phase-4-public-donation-page.md) | ⬜ Planned | Pledge form + live countdown per item. Decisions confirmed. |
+| 5 — CSV reports | [phase-5-csv-reports.md](phase-5-csv-reports.md) | ⬜ Planned | Export filtered donations (e.g. pending for one item) to CSV for manual reminders. |
+| 6 — Manual testing | [phase-6-manual-testing.md](phase-6-manual-testing.md) | ⬜ Planned | Checklist to run by hand as donor and admin; record problems in its Findings table. |
+| 7 — Bug fixing | [phase-7-bug-fixing.md](phase-7-bug-fixing.md) | ⬜ Planned | Fix what Phase 6 found, by severity. |
+| 8 — Deployment & polish | [phase-8-deployment.md](phase-8-deployment.md) | ⬜ Planned | Neon DB, smoke test, Vercel deploy, env vars, final polish; re-test with section D of Phase 6. |
+| — | [deferred-whatsapp-reminders.md](deferred-whatsapp-reminders.md) | 🚫 Deferred | Automated WhatsApp reminders; manual via CSV for now. |
 
 ## Status legend
 - ⬜ Not started
