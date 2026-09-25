@@ -1,7 +1,9 @@
 # Phase 6: Manual testing guide
 
 ## Overview
-A checklist for **you** to run by hand, first as a donor and then as the administrator, before deploying. Each scenario has steps and the expected result. Mark `[x]` when it passes; when it fails, write the problem in the **Findings** table at the bottom — Phase 7 (bug fixing) is built from that table.
+A checklist for **you** to run by hand, first as a donor and then as the administrator, before deploying. Each scenario has steps and the expected result. Mark `[x]` when it passes; when it fails, add a row (`M1`, `M2`, …) to the **Findings** table in [phase-7-bug-fixing.md](phase-7-bug-fixing.md).
+
+The automated cycles ([phase-6a-automated-testing.md](phase-6a-automated-testing.md)) already covered most of this list — its **Left for the manual pass** section is the priority; the rest is a quick confirmation.
 
 ## Setup
 1. `nvm use` (Node 24), `npm run migrate`, `npm run dev` → http://localhost:3000
@@ -116,6 +118,4 @@ A checklist for **you** to run by hand, first as a donor and then as the adminis
 - [ ] Env vars are set on Vercel (`DATABASE_URL`, `PGSCHEMA`, `PGSSLMODE`, `APP_*`, `SESSION_SECRET`)
 
 ## Findings
-| # | Scenario | What happened | Expected | Severity (blocker / annoying / cosmetic) |
-|---|---|---|---|---|
-|   |   |   |   |   |
+Recorded in [phase-7-bug-fixing.md](phase-7-bug-fixing.md#findings).
