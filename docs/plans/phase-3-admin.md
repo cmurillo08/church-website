@@ -35,16 +35,16 @@ All under the existing auth (`middleware.js` matcher covers `/admin/*` and `/api
 
 | Endpoint | Behavior |
 |---|---|
-| `GET /api/admin/donations?status=&itemId=&search=&sort=&order=&limit=&offset=` | Paginated list → `{ items, total, limit, offset }`. `status` ∈ pending/received/cancelled (omit = all). `search` matches name (case-insensitive, unaccented if easy) or phone. `sort` ∈ created_at, donor_name, total_crc. Each row includes its lines. |
+| `GET /api/admin/donations?status=&itemId=&search=&sort=&order=&limit=&offset=` | Paginated list → `{ items, total, limit, offset }`. `status` ∈ pending/received/cancelled (omit = all). `search` matches name (case-insensitive, unaccented if easy) or phone. `sort` ∈ created_at, donor_name (total_crc removed in Phase 7 M9). Each row includes its lines. |
 | `PATCH /api/admin/donations/[id]` | Body `{ status: 'received' \| 'cancelled' }`. Nothing else is editable. |
 | `GET /api/admin/items` · `POST /api/admin/items` | List with counters (`pledged`, `remaining`) · create `{ name, unit_price_crc, goal_quantity? }` |
-| `PATCH /api/admin/items/[id]` | Edit name, price, goal, active, sort_order. No DELETE endpoint. |
+| `PATCH /api/admin/items/[id]` | Edit name, price, goal, active (sort_order dropped in Phase 7 M4). No DELETE endpoint. |
 | `GET /api/admin/settings` · `PUT /api/admin/settings` | Read / update the three keys; unknown keys are rejected. |
 
 **Status transitions** are enforced atomically in SQL so two clicks can't corrupt state:
 ```sql
 UPDATE donations SET status = $2, status_changed_at = now()
-WHERE id = $1 AND status = ANY($3)   -- $3: ['pending'] for received; ['pending','received'] for cancelled
+WHERE id = $1 AND status = ANY($3)   -- $3: ['pending'] for both (received → cancelled removed in Phase 7 M8)
 RETURNING *;
 ```
 Zero rows returned → respond 409 "La donación ya no está en un estado que permita este cambio" (covers cancelled-is-final and double clicks).

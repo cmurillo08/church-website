@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import ItemForm from '../../../../../../components/admin/ItemForm.js'
+import { adminFetch } from '../../../../../../lib/admin-fetch.js'
 
 export default function EditarArticuloPage() {
   const { id } = useParams()
@@ -11,7 +12,7 @@ export default function EditarArticuloPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch(`/api/admin/items/${id}`)
+    adminFetch(`/api/admin/items/${id}`)
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
         if (!res.ok) throw new Error(body.error || 'No se pudo cargar el artículo.')

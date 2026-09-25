@@ -31,7 +31,7 @@ CREATE TABLE items (
   unit_price_crc INTEGER NOT NULL CHECK (unit_price_crc > 0),
   goal_quantity INTEGER CHECK (goal_quantity IS NULL OR goal_quantity > 0),  -- NULL = no goal / no countdown
   active BOOLEAN NOT NULL DEFAULT true,
-  sort_order INTEGER NOT NULL DEFAULT 0,
+  sort_order INTEGER NOT NULL DEFAULT 0,  -- dropped in Phase 7 (M4); items are ordered by created_at
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -69,7 +69,7 @@ INSERT INTO site_settings (key, value) VALUES
   ('sinpe_number', '');
 ```
 Notes:
-- Status is on the **whole donation**, not per line. Allowed transitions (enforced in the API in Phase 3, not in SQL): `pending → received`, `pending → cancelled`, `received → cancelled`. `cancelled` is final.
+- Status is on the **whole donation**, not per line. Allowed transitions (enforced in the API in Phase 3, not in SQL): `pending → received`, `pending → cancelled`. `received` and `cancelled` are final (Phase 7 M8 removed `received → cancelled`).
 - Deleting is never done from the app. `ON DELETE CASCADE` on `donation_items` only helps manual cleanup in dev.
 - `sinpe_number` is seeded empty; the public thank-you screen hides the SINPE line while it's empty.
 - Local demo data (dev only): `scripts/seed.js`, run with `npm run seed`, inserts 3 items and a few donations in mixed statuses. Never runs against production.
@@ -78,13 +78,13 @@ Notes:
 Both the admin and the public page must use these — never re-implement the counter elsewhere.
 ```sql
 -- Items with counters. `remaining` is computed in JS: goal == null ? null : Math.max(goal - pledged, 0)
-SELECT i.id, i.name, i.unit_price_crc, i.goal_quantity, i.active, i.sort_order,
+SELECT i.id, i.name, i.unit_price_crc, i.goal_quantity, i.active, i.created_at,
        COALESCE(SUM(di.quantity) FILTER (WHERE d.status IN ('pending','received')), 0)::int AS pledged
 FROM items i
 LEFT JOIN donation_items di ON di.item_id = i.id
 LEFT JOIN donations d ON d.id = di.donation_id
 GROUP BY i.id
-ORDER BY i.sort_order, i.id;
+ORDER BY i.created_at, i.id;  -- was sort_order before Phase 7 (M4)
 ```
 Helpers to export: `listItemsWithCounters({ activeOnly })`, `createDonation(...)` (one transaction; see Phase 4 for rules), `listDonations({ status, itemId, search, sort, order, limit, offset })` returning `{ items, total }`, `setDonationStatus(id, next)` (see Phase 3), `getSettings()` / `updateSettings()`.
 Lists of donations must also return each donation's lines (`item name, quantity, unit_price_crc`) — aggregate with `json_agg` in the same query to avoid N+1.

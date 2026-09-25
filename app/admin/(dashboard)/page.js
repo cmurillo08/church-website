@@ -1,13 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import EntityTable from '../../../components/admin/EntityTable.js'
-import Pagination from '../../../components/admin/Pagination.js'
+import Pagination, { PAGE_SIZES } from '../../../components/admin/Pagination.js'
 import ConfirmDialog from '../../../components/admin/ConfirmDialog.js'
 import StatusBadge from '../../../components/admin/StatusBadge.js'
 import { inputClass, rowButton, secondaryButton } from '../../../components/admin/buttons.js'
 import { formatCRC, formatNumber, formatPhone } from '../../../lib/format.js'
 import { nextSortState } from '../../../lib/sorting.js'
+import { adminFetch } from '../../../lib/admin-fetch.js'
 
 const COLUMNS = [
   { key: 'donor_name', label: 'Nombre', sortKey: 'donor_name', defaultOrder: 'asc' },
@@ -41,8 +43,6 @@ const COLUMNS = [
   {
     key: 'total_crc',
     label: 'Total',
-    sortKey: 'total_crc',
-    defaultOrder: 'desc',
     align: 'right',
     render: (d) => <span className="whitespace-nowrap font-medium">{formatCRC(d.total_crc)}</span>,
   },
@@ -58,6 +58,50 @@ const STATUS_FILTERS = [
   { value: 'cancelled', label: 'Canceladas' },
   { value: '', label: 'Todas' },
 ]
+
+// Filters, sort and page live in the query string so reload and Back keep
+// them. Only non-default values are written; bad values fall back to defaults.
+const DEFAULT_STATUS = 'pending'
+const DEFAULT_LIMIT = 10
+
+function readListState(params) {
+  const statusParam = params.get('status')
+  const status =
+    statusParam === 'all' ? '' : STATUS_FILTERS.some((f) => f.value && f.value === statusParam) ? statusParam : DEFAULT_STATUS
+  const sortParam = params.get('sort')
+  const sortOption = [...SORT_OPTIONS, ...COLUMNS].find((c) => c.sortKey && c.sortKey === sortParam)
+  const sort = sortOption ? sortParam : 'created_at'
+  const orderParam = params.get('order')
+  const order = orderParam === 'asc' || orderParam === 'desc' ? orderParam : sortOption?.defaultOrder || 'desc'
+  const limitParam = Number(params.get('limit'))
+  const limit = PAGE_SIZES.includes(limitParam) ? limitParam : DEFAULT_LIMIT
+  const page = Number(params.get('page'))
+  const offset = Number.isInteger(page) && page > 1 ? (page - 1) * limit : 0
+  const itemParam = params.get('item')
+  return {
+    status,
+    search: (params.get('search') || '').trim(),
+    itemId: /^[0-9]+$/.test(itemParam || '') ? itemParam : '',
+    sort,
+    order,
+    limit,
+    offset,
+  }
+}
+
+function listStateQuery({ status, search, itemId, sort, order, limit, offset }) {
+  const qs = new URLSearchParams()
+  if (status !== DEFAULT_STATUS) qs.set('status', status || 'all')
+  if (search) qs.set('search', search)
+  if (itemId) qs.set('item', itemId)
+  if (sort !== 'created_at' || order !== 'desc') {
+    qs.set('sort', sort)
+    qs.set('order', order)
+  }
+  if (limit !== DEFAULT_LIMIT) qs.set('limit', String(limit))
+  if (offset > 0) qs.set('page', String(Math.floor(offset / limit) + 1))
+  return qs.toString()
+}
 
 const ACTIONS = {
   received: {
@@ -75,21 +119,35 @@ const ACTIONS = {
   },
 }
 
+// useSearchParams needs a Suspense boundary so the page can still prerender.
 export default function DonacionesPage() {
+  return (
+    <Suspense fallback={<p className="py-8 text-center text-sm text-gray-500">Cargando…</p>}>
+      <DonacionesList />
+    </Suspense>
+  )
+}
+
+function DonacionesList() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [initial] = useState(() => readListState(searchParams))
+
   // `key` identifies which request the data belongs to; while it differs
   // from the current request key the list is loading.
   const [result, setResult] = useState({ key: null, items: [], total: 0, error: '' })
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
-  const [status, setStatus] = useState('pending')
-  const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('')
-  const [itemId, setItemId] = useState('')
-  const [sort, setSort] = useState('created_at')
-  const [order, setOrder] = useState('desc')
-  const [limit, setLimit] = useState(25)
-  const [offset, setOffset] = useState(0)
+  const [status, setStatus] = useState(initial.status)
+  const [searchInput, setSearchInput] = useState(initial.search)
+  const [search, setSearch] = useState(initial.search)
+  const [itemId, setItemId] = useState(initial.itemId)
+  const [sort, setSort] = useState(initial.sort)
+  const [order, setOrder] = useState(initial.order)
+  const [limit, setLimit] = useState(initial.limit)
+  const [offset, setOffset] = useState(initial.offset)
   const [reloadKey, setReloadKey] = useState(0)
 
   const [articleOptions, setArticleOptions] = useState([])
@@ -97,11 +155,19 @@ export default function DonacionesPage() {
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/items')
+    adminFetch('/api/admin/items')
       .then((res) => (res.ok ? res.json() : { items: [] }))
       .then((body) => setArticleOptions(body.items || []))
       .catch(() => setArticleOptions([]))
   }, [])
+
+  // Mirror the list state into the URL (replace, so filters don't pile up in history).
+  useEffect(() => {
+    const next = listStateQuery({ status, search, itemId, sort, order, limit, offset })
+    if (next !== window.location.search.replace(/^\?/, '')) {
+      router.replace(next ? `${pathname}?${next}` : pathname, { scroll: false })
+    }
+  }, [status, search, itemId, sort, order, limit, offset, router, pathname])
 
   // Debounce typing so each keystroke doesn't hit the server.
   useEffect(() => {
@@ -134,7 +200,7 @@ export default function DonacionesPage() {
 
   useEffect(() => {
     const controller = new AbortController()
-    fetch(`/api/admin/donations?${query}`, { signal: controller.signal })
+    adminFetch(`/api/admin/donations?${query}`, { signal: controller.signal })
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
         if (!res.ok) throw new Error(body.error || 'No se pudieron cargar las donaciones.')
@@ -181,7 +247,7 @@ export default function DonacionesPage() {
     setNotice('')
     setError('')
     try {
-      const res = await fetch(`/api/admin/donations/${donation.id}`, {
+      const res = await adminFetch(`/api/admin/donations/${donation.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: next }),
@@ -206,31 +272,25 @@ export default function DonacionesPage() {
   }
 
   function renderActions(donation) {
-    const canReceive = donation.status === 'pending'
-    const canCancel = donation.status === 'pending' || donation.status === 'received'
-    if (!canReceive && !canCancel) {
+    if (donation.status !== 'pending') {
       return <span className="text-sm text-gray-400">Sin acciones</span>
     }
     return (
       <>
-        {canReceive && (
-          <button
-            type="button"
-            onClick={() => setConfirm({ donation, next: 'received' })}
-            className={`${rowButton} border-green-300 bg-green-50 text-green-800 hover:bg-green-100`}
-          >
-            Marcar recibida
-          </button>
-        )}
-        {canCancel && (
-          <button
-            type="button"
-            onClick={() => setConfirm({ donation, next: 'cancelled' })}
-            className={`${rowButton} border-red-200 bg-white text-red-600 hover:bg-red-50`}
-          >
-            Cancelar
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setConfirm({ donation, next: 'received' })}
+          className={`${rowButton} border-green-300 bg-green-50 text-green-800 hover:bg-green-100`}
+        >
+          Marcar recibida
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirm({ donation, next: 'cancelled' })}
+          className={`${rowButton} border-red-200 bg-white text-red-600 hover:bg-red-50`}
+        >
+          Cancelar
+        </button>
       </>
     )
   }

@@ -6,9 +6,9 @@ import db from '../lib/db.js';
 import { createDonation, setDonationStatus } from '../lib/donations.js';
 
 const items = [
-  { name: 'Saco de cemento', unit_price_crc: 8000, goal_quantity: 100, sort_order: 1 },
-  { name: 'Lámina de zinc', unit_price_crc: 12000, goal_quantity: 60, sort_order: 2 },
-  { name: 'Varilla de construcción', unit_price_crc: 4500, goal_quantity: null, sort_order: 3 },
+  { name: 'Saco de cemento', unit_price_crc: 8000, goal_quantity: 100 },
+  { name: 'Lámina de zinc', unit_price_crc: 12000, goal_quantity: 60 },
+  { name: 'Varilla de construcción', unit_price_crc: 4500, goal_quantity: null },
 ];
 
 // [donor_name, donor_phone, [[item index, quantity], ...], final status]
@@ -39,9 +39,9 @@ async function run() {
   const itemIds = [];
   for (const item of items) {
     const result = await db.query(
-      `INSERT INTO items (name, unit_price_crc, goal_quantity, sort_order)
-       VALUES ($1, $2, $3, $4) RETURNING id`,
-      [item.name, item.unit_price_crc, item.goal_quantity, item.sort_order]
+      `INSERT INTO items (name, unit_price_crc, goal_quantity)
+       VALUES ($1, $2, $3) RETURNING id`,
+      [item.name, item.unit_price_crc, item.goal_quantity]
     );
     itemIds.push(result.rows[0].id);
     console.log(`[seed] item: ${item.name}`);

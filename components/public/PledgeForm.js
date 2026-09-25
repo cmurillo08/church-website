@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { formatCRC } from '../../lib/format.js'
+import { normalizePhone } from '../../lib/phone.js'
 
 const MAX_QUANTITY = 9999
 
@@ -20,10 +21,6 @@ function newToken() {
   bytes[8] = (bytes[8] & 0x3f) | 0x80
   const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
-}
-
-function onlyDigits(value) {
-  return value.replace(/[\s-]/g, '')
 }
 
 // Pledge form: name, phone, a quantity stepper per active item and a running
@@ -62,7 +59,7 @@ export default function PledgeForm({ items, onSuccess, onStale }) {
   function validate() {
     const next = {}
     if (!name.trim()) next.donor_name = 'Escriba su nombre.'
-    if (!/^[0-9]{8}$/.test(onlyDigits(phone))) next.donor_phone = 'El teléfono debe tener 8 números.'
+    if (!normalizePhone(phone)) next.donor_phone = 'El teléfono debe tener 8 números.'
     if (lines.length === 0) next.lines = 'Elija al menos un artículo.'
     return next
   }
@@ -86,7 +83,7 @@ export default function PledgeForm({ items, onSuccess, onStale }) {
         body: JSON.stringify({
           client_token: token.current,
           donor_name: name.trim(),
-          donor_phone: onlyDigits(phone),
+          donor_phone: normalizePhone(phone),
           is_member: isMember,
           lines: lines.map((line) => ({ item_id: line.item.id, quantity: line.quantity })),
           website,
@@ -162,7 +159,7 @@ export default function PledgeForm({ items, onSuccess, onStale }) {
           inputMode="numeric"
           autoComplete="tel-national"
           placeholder="8888-8888"
-          maxLength={10}
+          maxLength={16}
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           aria-invalid={Boolean(errors.donor_phone)}
@@ -197,7 +194,7 @@ export default function PledgeForm({ items, onSuccess, onStale }) {
         <input id="website" type="text" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
       </div>
 
-      <fieldset aria-describedby={errors.lines ? 'lines-error' : undefined}>
+      <fieldset className="min-w-0" aria-describedby={errors.lines ? 'lines-error' : undefined}>
         <legend className="text-lg font-medium text-gray-800">¿Qué desea donar?</legend>
         <ul className="mt-2 space-y-3">
           {items.map((item) => {

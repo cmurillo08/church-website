@@ -20,7 +20,7 @@ A donation-pledge web app for our church's building fund (new church building). 
 
 ## Domain rules (do not re-derive differently in another place)
 - Counter: `pledged` = units in donations with status `pending` or `received`; `remaining = max(goal − pledged, 0)`; goal `NULL` = no countdown. It drops when a pledge is **reported**, and cancelling returns the units. Over-goal pledges are allowed. One shared query in `lib/donations.js`.
-- Status is on the whole donation: `pending → received`, `pending → cancelled`, `received → cancelled`; `cancelled` is final. Pledges are never editable, only their status changes.
+- Status is on the whole donation: `pending → received`, `pending → cancelled`; `received` and `cancelled` are final (changed in Phase 7, M8). Pledges are never editable, only their status changes.
 - Each pledge line stores its own `unit_price_crc` at pledge time; price edits only affect new pledges. Totals are always computed server-side.
 - Donations are anonymous **publicly** — public endpoints return aggregates only, never names or phones. Admin sees them.
 - Currency is colones (₡), integers. Phone is 8 digits (Costa Rica). UI is Spanish, with simple wording.

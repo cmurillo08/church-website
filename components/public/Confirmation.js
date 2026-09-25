@@ -3,23 +3,50 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatCRC, formatNumber, formatPhone } from '../../lib/format.js'
 
+// navigator.clipboard only exists on https (and localhost); phones opening
+// the site over plain http or in some in-app browsers need the old
+// select-and-copy way. Returns whether the text was copied.
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch {
+    // Blocked; try the fallback below.
+  }
+  const previousFocus = document.activeElement
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  // Off-screen, and 16px so iOS doesn't zoom in on focus.
+  textarea.style.cssText = 'position:fixed;top:0;left:-9999px;font-size:16px'
+  document.body.appendChild(textarea)
+  try {
+    textarea.select()
+    textarea.setSelectionRange(0, text.length) // iOS ignores select()
+    return document.execCommand('copy')
+  } catch {
+    return false
+  } finally {
+    textarea.remove()
+    previousFocus?.focus?.()
+  }
+}
+
 // Shown after a successful pledge: thanks, summary and how to pay.
 export default function Confirmation({ pledge, settings, onAgain }) {
   const headingRef = useRef(null)
-  const [copied, setCopied] = useState(false)
+  const [copyState, setCopyState] = useState('') // '' | 'copied' | 'failed'
 
   useEffect(() => {
     headingRef.current?.focus()
   }, [])
 
   async function copySinpe() {
-    try {
-      await navigator.clipboard.writeText(settings.sinpe_number)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard can be blocked (e.g. plain http); the number stays visible.
-    }
+    const ok = await copyText(settings.sinpe_number)
+    setCopyState(ok ? 'copied' : 'failed')
+    if (ok) setTimeout(() => setCopyState(''), 2000)
   }
 
   return (
@@ -49,8 +76,10 @@ export default function Confirmation({ pledge, settings, onAgain }) {
 
       <div className="space-y-3">
         <h3 className="text-xl font-semibold text-primary">¿Cómo pagar?</h3>
-        {settings.payment_instructions && (
+        {settings.payment_instructions ? (
           <p className="whitespace-pre-line text-lg text-gray-800">{settings.payment_instructions}</p>
+        ) : (
+          !settings.sinpe_number && <p className="text-lg text-gray-800">Le contactaremos para coordinar el pago.</p>
         )}
         {settings.sinpe_number && (
           <div className="rounded-xl bg-secondary/10 p-4 text-center">
@@ -61,8 +90,13 @@ export default function Confirmation({ pledge, settings, onAgain }) {
               onClick={copySinpe}
               className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-base font-medium text-gray-700 transition hover:bg-gray-50"
             >
-              {copied ? 'Número copiado' : 'Copiar número'}
+              {copyState === 'copied' ? 'Número copiado' : 'Copiar número'}
             </button>
+            {copyState === 'failed' && (
+              <p className="mt-2 text-base text-gray-700" role="status">
+                No se pudo copiar. Por favor anote el número.
+              </p>
+            )}
           </div>
         )}
       </div>

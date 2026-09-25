@@ -5,13 +5,16 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { inputClass, primaryButton, secondaryButton } from './buttons.js'
 import { formatNumber } from '../../lib/format.js'
+import { adminFetch } from '../../lib/admin-fetch.js'
 
 // Accepts "8000", "8 000", "8.000" or "8,000"; returns null when empty and
-// NaN when it isn't a whole number.
+// NaN when it isn't a whole number. A dot/comma only counts as a thousands
+// separator before a group of 3 digits, so "1.5" or "2,50" are rejected.
 function parseWholeNumber(value) {
-  const cleaned = String(value ?? '').replace(/[\s.,]/g, '')
-  if (cleaned === '') return null
-  return /^[0-9]+$/.test(cleaned) ? Number(cleaned) : NaN
+  const trimmed = String(value ?? '').trim()
+  if (trimmed === '') return null
+  if (!/^[0-9]{1,3}([\s.,]?[0-9]{3})*$/.test(trimmed)) return NaN
+  return Number(trimmed.replace(/[\s.,]/g, ''))
 }
 
 function FieldError({ message }) {
@@ -23,8 +26,8 @@ function FieldError({ message }) {
   )
 }
 
-// Create form when `item` is omitted; edit form otherwise (adds order and
-// active, and shows the current counters).
+// Create form when `item` is omitted; edit form otherwise (adds active, and
+// shows the current counters).
 export default function ItemForm({ item }) {
   const router = useRouter()
   const isEdit = Boolean(item)
@@ -32,7 +35,6 @@ export default function ItemForm({ item }) {
   const [name, setName] = useState(item?.name ?? '')
   const [price, setPrice] = useState(item ? String(item.unit_price_crc) : '')
   const [goal, setGoal] = useState(item?.goal_quantity != null ? String(item.goal_quantity) : '')
-  const [sortOrder, setSortOrder] = useState(item ? String(item.sort_order) : '')
   const [active, setActive] = useState(item?.active ?? true)
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState('')
@@ -46,16 +48,12 @@ export default function ItemForm({ item }) {
     const nextErrors = {}
     const priceValue = parseWholeNumber(price)
     const goalValue = parseWholeNumber(goal)
-    const orderValue = Number(sortOrder)
     if (!name.trim()) nextErrors.name = 'Escriba el nombre.'
     if (!Number.isInteger(priceValue) || priceValue <= 0) {
       nextErrors.unit_price_crc = 'El precio debe ser un número entero mayor que 0.'
     }
     if (goalValue !== null && (!Number.isInteger(goalValue) || goalValue <= 0)) {
       nextErrors.goal_quantity = 'La meta debe ser un número entero mayor que 0, o quedar vacía.'
-    }
-    if (isEdit && (sortOrder.trim() === '' || !Number.isInteger(orderValue))) {
-      nextErrors.sort_order = 'El orden debe ser un número entero.'
     }
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
@@ -64,13 +62,12 @@ export default function ItemForm({ item }) {
 
     const payload = { name: name.trim(), unit_price_crc: priceValue, goal_quantity: goalValue }
     if (isEdit) {
-      payload.sort_order = orderValue
       payload.active = active
     }
 
     setSaving(true)
     try {
-      const res = await fetch(isEdit ? `/api/admin/items/${item.id}` : '/api/admin/items', {
+      const res = await adminFetch(isEdit ? `/api/admin/items/${item.id}` : '/api/admin/items', {
         method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -172,26 +169,6 @@ export default function ItemForm({ item }) {
 
       {isEdit && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <label htmlFor="item-order" className="block text-sm font-medium text-gray-700">
-              Orden en la lista
-            </label>
-            <input
-              id="item-order"
-              type="text"
-              inputMode="numeric"
-              value={sortOrder}
-              onChange={(event) => setSortOrder(event.target.value)}
-              className={inputClass}
-              aria-invalid={Boolean(errors.sort_order)}
-              aria-describedby="item-order-help"
-            />
-            <p id="item-order-help" className="text-xs text-gray-500">
-              Los números más bajos aparecen primero.
-            </p>
-            <FieldError message={errors.sort_order} />
-          </div>
-
           <div className="space-y-1.5">
             <span className="block text-sm font-medium text-gray-700">Estado</span>
             <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-gray-300 px-3">

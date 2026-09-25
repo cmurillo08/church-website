@@ -5,8 +5,9 @@ import Link from 'next/link'
 import EntityTable from '../../../../components/admin/EntityTable.js'
 import Pagination from '../../../../components/admin/Pagination.js'
 import ConfirmDialog from '../../../../components/admin/ConfirmDialog.js'
-import { primaryButton, rowButton } from '../../../../components/admin/buttons.js'
+import { inputClass, primaryButton, rowButton } from '../../../../components/admin/buttons.js'
 import { formatCRC, formatNumber } from '../../../../lib/format.js'
+import { adminFetch } from '../../../../lib/admin-fetch.js'
 
 const COLUMNS = [
   { key: 'name', label: 'Nombre', render: (it) => <span className="font-medium">{it.name}</span> },
@@ -35,7 +36,7 @@ const COLUMNS = [
     render: (it) => (
       <span
         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-          it.active ? 'bg-green-50 text-green-800 ring-green-200' : 'bg-gray-100 text-gray-600 ring-gray-200'
+          it.active ? 'bg-green-50 text-green-800 ring-green-200' : 'bg-red-50 text-red-700 ring-red-200'
         }`}
       >
         {it.active ? 'Activo' : 'Inactivo'}
@@ -44,19 +45,26 @@ const COLUMNS = [
   },
 ]
 
+const STATUS_FILTERS = [
+  { value: '', label: 'Todos' },
+  { value: 'active', label: 'Activos' },
+  { value: 'inactive', label: 'Inactivos' },
+]
+
 // Items are few, so the list is loaded once and paginated in the browser
 // with the same components as Donaciones.
 export default function ArticulosPage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [limit, setLimit] = useState(25)
+  const [status, setStatus] = useState('')
+  const [limit, setLimit] = useState(10)
   const [offset, setOffset] = useState(0)
   const [confirm, setConfirm] = useState(null) // item to deactivate
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/items')
+    adminFetch('/api/admin/items')
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
         if (!res.ok) throw new Error(body.error || 'No se pudieron cargar los artículos.')
@@ -70,7 +78,7 @@ export default function ArticulosPage() {
     setBusy(true)
     setError('')
     try {
-      const res = await fetch(`/api/admin/items/${item.id}`, {
+      const res = await adminFetch(`/api/admin/items/${item.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active }),
@@ -119,7 +127,11 @@ export default function ArticulosPage() {
     )
   }
 
-  const pageItems = items.slice(offset, offset + limit)
+  const filteredItems = status ? items.filter((it) => it.active === (status === 'active')) : items
+  // Deactivating the last row of a filtered page empties it — show the last page instead.
+  const pageOffset =
+    offset > 0 && offset >= filteredItems.length ? Math.max(0, Math.floor((filteredItems.length - 1) / limit) * limit) : offset
+  const pageItems = filteredItems.slice(pageOffset, pageOffset + limit)
 
   return (
     <div className="space-y-4">
@@ -128,6 +140,27 @@ export default function ArticulosPage() {
         <Link href="/admin/articulos/nuevo" className={primaryButton}>
           Nuevo artículo
         </Link>
+      </div>
+
+      <div className="flex flex-col gap-1.5 sm:w-48">
+        <label htmlFor="filter-status" className="text-sm font-medium text-gray-700">
+          Estado
+        </label>
+        <select
+          id="filter-status"
+          value={status}
+          onChange={(event) => {
+            setStatus(event.target.value)
+            setOffset(0)
+          }}
+          className={inputClass}
+        >
+          {STATUS_FILTERS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {error && (
@@ -143,14 +176,18 @@ export default function ArticulosPage() {
           columns={COLUMNS}
           items={pageItems}
           renderActions={renderActions}
-          emptyMessage="Todavía no hay artículos. Cree el primero con «Nuevo artículo»."
+          emptyMessage={
+            items.length === 0
+              ? 'Todavía no hay artículos. Cree el primero con «Nuevo artículo».'
+              : 'No hay artículos en este estado.'
+          }
         />
       )}
 
       <Pagination
-        total={items.length}
+        total={filteredItems.length}
         limit={limit}
-        offset={offset}
+        offset={pageOffset}
         onLimitChange={(newLimit) => {
           setLimit(newLimit)
           setOffset(0)

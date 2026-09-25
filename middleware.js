@@ -44,7 +44,7 @@ export async function middleware(request) {
 
   if (!authenticated) {
     if (pathname.startsWith('/api/admin/')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Su sesión terminó. Inicie sesión de nuevo.' }, { status: 401 });
     }
     return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
   }

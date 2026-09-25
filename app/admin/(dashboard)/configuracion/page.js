@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { inputClass, primaryButton } from '../../../../components/admin/buttons.js'
+import { adminFetch } from '../../../../lib/admin-fetch.js'
 
 const FIELDS = [
   {
@@ -32,7 +33,7 @@ export default function ConfiguracionPage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/settings')
+    adminFetch('/api/admin/settings')
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
         if (!res.ok) throw new Error(body.error || 'No se pudo cargar la configuración.')
@@ -53,7 +54,7 @@ export default function ConfiguracionPage() {
     setSaved(false)
     setSaving(true)
     try {
-      const res = await fetch('/api/admin/settings', {
+      const res = await adminFetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),

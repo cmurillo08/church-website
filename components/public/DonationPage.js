@@ -62,7 +62,7 @@ export default function DonationPage({ initial }) {
   return (
     <main className="mx-auto w-full max-w-xl space-y-4 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-10">
       <header className="text-center">
-        <h1 className="text-3xl font-bold text-primary sm:text-4xl">Construyamos juntos el nuevo templo</h1>
+        <h1 className="hyphens-auto break-words text-3xl font-bold text-primary sm:text-4xl">Construyamos juntos el nuevo templo</h1>
         {settings.welcome_message && (
           <p className="mt-3 whitespace-pre-line text-lg text-gray-700">{settings.welcome_message}</p>
         )}

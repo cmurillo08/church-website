@@ -15,7 +15,7 @@ export async function GET(request, { params }) {
 }
 
 // PATCH /api/admin/items/[id] — any of name, unit_price_crc, goal_quantity,
-// active, sort_order. There is no DELETE: items are deactivated instead.
+// active. There is no DELETE: items are deactivated instead.
 export async function PATCH(request, { params }) {
   try {
     const { id } = await params;
