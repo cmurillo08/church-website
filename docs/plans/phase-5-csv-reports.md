@@ -8,9 +8,9 @@ Let the administrator export a list of donations as a CSV file that opens in Exc
 ### Included
 - **Exportar CSV** button on the admin Donaciones list (Phase 3). It exports exactly what the current filters select — status, item, search — across **all** matching rows, not just the current page.
 - `GET /api/admin/donations/export` — same filter params as the list endpoint, no `limit`/`offset`; responds with `text/csv` and a `Content-Disposition` filename such as `donaciones-pendientes-saco-de-cemento-2026-09-24.csv`. Behind the existing admin auth.
-- Columns: nombre, teléfono, artículo, cantidad, precio unitario, total de la línea, total de la donación, estado, fecha.
-  - When an item filter is active, only that item's lines are exported.
-  - One row per donation line, so a person with two items appears twice.
+- Columns: nombre, teléfono, miembro (Sí/No), artículos, total, estado, fecha.
+  - **One row per donation**, like the admin list: a pledge with several items is one row, with its items in one cell ("3 × Saco de cemento, 2 × Lámina de zinc") and the donation total. A person who made two separate pledges appears twice.
+  - The item filter selects donations that include that item; the row still lists all of the donation's items, since the total to remind about covers all of them.
 - Excel compatibility: UTF-8 with BOM (accents like "láminas" display correctly), comma separator, proper quoting, phone written as text so nothing is reformatted or loses leading digits, CSV-injection guard (prefix `'` to cells starting with `=`, `+`, `-`, `@`).
 
 ### Not included

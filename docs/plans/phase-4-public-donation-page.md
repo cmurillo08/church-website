@@ -8,7 +8,7 @@ Mobile-first public page where members pledge items for the new church building,
 ### Included
 - Public page `/` (Spanish, colones ₡, ~390px first, large text and buttons for older users)
 - **Countdown section**: one tab per active item (expected ≤ 3 at a time). Each tab shows name, goal, pledged, and the big **remaining** number (goal − pledged) that counts down as people donate. Progress bar. Refreshes itself by polling (~10 s); no websockets (Vercel serverless).
-- **Pledge form**: name, phone (exactly 8 digits, Costa Rica, no country code or postal code), then one quantity stepper (− / +) per active item showing unit price and line subtotal, and a running total in ₡. Multiple items per pledge.
+- **Pledge form**: name, phone (exactly 8 digits, Costa Rica, no country code or postal code), a "Soy miembro de la iglesia" checkbox (unchecked by default; anyone may donate, this just tells members apart — added after the phase landed, migration `20260925_add_donations_is_member.sql`), then one quantity stepper (− / +) per active item showing unit price and line subtotal, and a running total in ₡. Multiple items per pledge.
 - Confirmation screen: thanks + payment instructions (SINPE number and "cash to a church member"), editable text.
 - Public APIs return **aggregates only** — never names or phones.
 
@@ -34,11 +34,11 @@ Returns only active items, **aggregates only**:
 ### `POST /api/public/donations`
 Request:
 ```json
-{ "client_token": "<uuid generated when the form loads>", "donor_name": "María Pérez", "donor_phone": "88887777",
+{ "client_token": "<uuid generated when the form loads>", "donor_name": "María Pérez", "donor_phone": "88887777", "is_member": true,
   "lines": [ { "item_id": 1, "quantity": 3 }, { "item_id": 2, "quantity": 2 } ] }
 ```
 Server rules (never trust the client for money):
-- Trim name (1–100 chars); phone: strip spaces/dashes, must then match `^[0-9]{8}$`
+- Trim name (1–100 chars); phone: strip spaces/dashes, must then match `^[0-9]{8}$`; `is_member` must be a boolean if sent (defaults to `false`)
 - 1–10 lines; each `quantity` an integer 1–9999; no duplicate `item_id`; every item must exist and be **active**
 - `unit_price_crc` and `total_crc` are **computed on the server** from `items` at insert time, inside one transaction (`runTransaction`) that inserts `donations` then `donation_items`
 - Response `201 { "ok": true, "total_crc": 40000 }`; validation failures `400 { "error": "..." , "field": "donor_phone" }` in plain Spanish

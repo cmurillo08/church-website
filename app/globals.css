@@ -9,3 +9,17 @@ body {
   background-color: #fafaf7;
   color: #1f2937;
 }
+
+/* Public countdown: brief "pop" whenever the number changes (re-keyed element). */
+@keyframes count-pop {
+  0% { transform: scale(1.15); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-count {
+  animation: count-pop 400ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-count { animation: none; }
+}

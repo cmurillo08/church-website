@@ -1,7 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Church Building Fund',
+  title: 'Donaciones · Nuevo templo',
+  description: 'Prometa materiales para la construcción del nuevo templo.',
 }
 
 export default function RootLayout({ children }) {

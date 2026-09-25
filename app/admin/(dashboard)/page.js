@@ -5,7 +5,7 @@ import EntityTable from '../../../components/admin/EntityTable.js'
 import Pagination from '../../../components/admin/Pagination.js'
 import ConfirmDialog from '../../../components/admin/ConfirmDialog.js'
 import StatusBadge from '../../../components/admin/StatusBadge.js'
-import { inputClass, rowButton } from '../../../components/admin/buttons.js'
+import { inputClass, rowButton, secondaryButton } from '../../../components/admin/buttons.js'
 import { formatCRC, formatNumber, formatPhone } from '../../../lib/format.js'
 import { nextSortState } from '../../../lib/sorting.js'
 
@@ -19,6 +19,11 @@ const COLUMNS = [
         {formatPhone(d.donor_phone)}
       </a>
     ),
+  },
+  {
+    key: 'is_member',
+    label: 'Miembro',
+    render: (d) => (d.is_member ? 'Sí' : 'No'),
   },
   {
     key: 'lines',
@@ -117,6 +122,15 @@ export default function DonacionesPage() {
     return qs.toString()
   }, [status, search, itemId, sort, order, limit, offset])
   const requestKey = `${query}#${reloadKey}`
+
+  // Same filters and order as the list, without pagination.
+  const exportHref = useMemo(() => {
+    const qs = new URLSearchParams({ sort, order })
+    if (status) qs.set('status', status)
+    if (search) qs.set('search', search)
+    if (itemId) qs.set('itemId', itemId)
+    return `/api/admin/donations/export?${qs}`
+  }, [status, search, itemId, sort, order])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -226,7 +240,12 @@ export default function DonacionesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-primary">Donaciones</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-semibold text-primary">Donaciones</h1>
+        <a href={exportHref} download className={`${secondaryButton} w-full sm:w-auto`}>
+          Exportar CSV
+        </a>
+      </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[12rem_1fr_16rem]">
         <div className="flex flex-col gap-1.5">

@@ -1,15 +1,15 @@
-import Link from 'next/link'
+import DonationPage from '../components/public/DonationPage.js'
+import { getPublicSnapshot } from '../lib/donations.js'
 
-export default function Home() {
-  return (
-    <main className="flex min-h-screen items-center justify-center p-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-semibold text-primary">Church Building Fund</h1>
-        <p className="mt-2 text-secondary">Phase 1 scaffold — features coming in later phases.</p>
-        <Link href="/health" className="mt-4 inline-block text-sm text-primary underline">
-          Health check
-        </Link>
-      </div>
-    </main>
-  )
+export const dynamic = 'force-dynamic'
+
+export default async function Home() {
+  let initial = null
+  try {
+    initial = await getPublicSnapshot()
+  } catch (error) {
+    // The client keeps polling and fills in once the database answers.
+    console.error('[home] could not load snapshot', error)
+  }
+  return <DonationPage initial={initial} />
 }
