@@ -12,7 +12,7 @@ One row per phase. Update **Status** as work lands — first thing to check in a
 | 6 — Manual testing | [phase-6-manual-testing.md](phase-6-manual-testing.md) | ✅ Done | Checklist run by hand as donor and admin (2026-09-25); 9 findings (M1–M9) logged in Phase 7. |
 | 6a — Automated testing | [phase-6a-automated-testing.md](phase-6a-automated-testing.md) | ✅ Done | Two Claude-in-Chrome cycles over the Phase 6 checklist (2026-09-24): 11 findings (A1–A11, 2 annoying, 9 cosmetic) logged in Phase 7; list of manual-only checks. |
 | 7 — Bug fixing | [phase-7-bug-fixing.md](phase-7-bug-fixing.md) | ✅ Done | All 20 findings (A1–A11, M1–M9) fixed and re-tested (2026-09-25). Rule change: only pending donations can be cancelled. Re-check "Copiar número" on a phone once deployed (https). |
-| 8 — Deployment & polish | [phase-8-deployment.md](phase-8-deployment.md) | ⬜ Planned | Neon DB, smoke test, Vercel deploy, env vars, final polish; re-test with section D of Phase 6. |
+| 8 — Deployment & polish | [phase-8-deployment.md](phase-8-deployment.md) | 🟡 In progress | Stage A done (2026-09-25): Neon `church_donations`, 3 migrations, direct (non-pooler) URL, no seed data. Stage B smoke test passed against Neon (search_path startup option works on the direct endpoint). Polish: `app/icon.svg` favicon, `app/opengraph-image.js` share card, Open Graph metadata; name/palette kept as placeholders. Pending: Vercel import + env vars, section D of Phase 6. |
 | — | [deferred-whatsapp-reminders.md](deferred-whatsapp-reminders.md) | 🚫 Deferred | Automated WhatsApp reminders; manual via CSV for now. |
 
 ## Status legend
