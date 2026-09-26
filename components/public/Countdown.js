@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { formatNumber } from '../../lib/format.js'
 
-// "Telethon" counter: one tab per active item with the big remaining number.
+// "Telethon" counter: one tab per active item (shown even for a single item,
+// so the layout looks the same) with the big remaining number.
 export default function Countdown({ items }) {
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? null)
 
@@ -18,34 +19,32 @@ export default function Countdown({ items }) {
         ¿Cuánto falta?
       </h2>
 
-      {items.length > 1 && (
-        <div role="tablist" aria-label="Artículos" className="mt-3 flex flex-wrap gap-2">
-          {items.map((item) => {
-            const active = item.id === selected.id
-            return (
-              <button
-                key={item.id}
-                type="button"
-                role="tab"
-                id={`tab-${item.id}`}
-                aria-selected={active}
-                aria-controls="countdown-panel"
-                onClick={() => setSelectedId(item.id)}
-                className={`min-h-12 min-w-[7rem] flex-1 rounded-xl px-3 py-2 text-base font-medium leading-tight transition ${
-                  active ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {item.name}
-              </button>
-            )
-          })}
-        </div>
-      )}
+      <div role="tablist" aria-label="Artículos" className="mt-3 flex flex-wrap gap-2">
+        {items.map((item) => {
+          const active = item.id === selected.id
+          return (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              id={`tab-${item.id}`}
+              aria-selected={active}
+              aria-controls="countdown-panel"
+              onClick={() => setSelectedId(item.id)}
+              className={`min-h-12 min-w-[7rem] flex-1 rounded-xl px-3 py-2 text-base font-medium leading-tight transition ${
+                active ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {item.name}
+            </button>
+          )
+        })}
+      </div>
 
       <div
         id="countdown-panel"
-        role={items.length > 1 ? 'tabpanel' : undefined}
-        aria-labelledby={items.length > 1 ? `tab-${selected.id}` : undefined}
+        role="tabpanel"
+        aria-labelledby={`tab-${selected.id}`}
         className="mt-4"
       >
         <CounterPanel item={selected} />
