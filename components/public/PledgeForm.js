@@ -195,7 +195,7 @@ export default function PledgeForm({ items, onSuccess, onStale }) {
       </div>
 
       <fieldset className="min-w-0" aria-describedby={errors.lines ? 'lines-error' : undefined}>
-        <legend className="text-lg font-medium text-gray-800">¿Qué desea donar?</legend>
+        <legend className="text-lg font-medium text-gray-800">¿Con qué quieres contribuir?</legend>
         <ul className="mt-2 space-y-3">
           {items.map((item) => {
             const quantity = quantities[item.id] || 0
