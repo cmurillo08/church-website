@@ -16,7 +16,7 @@ export default function Countdown({ items }) {
   return (
     <section aria-labelledby="countdown-title" className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200 sm:p-6">
       <h2 id="countdown-title" className="text-xl font-semibold text-primary">
-        ¿Cuánto falta?
+        ¿Cuánto falta para alcanzar la meta?
       </h2>
 
       <div role="tablist" aria-label="Artículos" className="mt-3 flex flex-wrap gap-2">

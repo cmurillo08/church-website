@@ -120,10 +120,10 @@ export default function PledgeForm({ items, onSuccess, onStale }) {
     >
       <div>
         <h2 id="pledge-title" className="text-xl font-semibold text-primary">
-          Quiero donar
+          Quiero contribuir
         </h2>
         <p className="mt-1 text-base text-gray-600">
-          Hoy solo hace la promesa. El pago se hace después, en efectivo o por SINPE Móvil.
+          Hoy solo hace la promesa. El pago lo puedes hacer después, en efectivo o por SINPE Móvil o transferencia bancaria.
         </p>
       </div>
 

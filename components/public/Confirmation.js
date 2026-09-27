@@ -34,20 +34,57 @@ async function copyText(text) {
   }
 }
 
+// Building-fund savings account (Proyecto Terreno y Construcción).
+// Hardcoded for now; not an admin setting.
+const BANK_IBAN = 'CR79081300210006149085'
+
+// A payment number with a copy button. `display` is what's shown, `value`
+// what's copied (without spaces or dashes). The button texts default to the
+// phone-number wording.
+function CopyBox({
+  label,
+  display,
+  value,
+  valueClassName,
+  copyLabel = 'Copiar número',
+  copiedLabel = 'Número copiado',
+  failedMessage = 'No se pudo copiar. Por favor anote el número.',
+}) {
+  const [copyState, setCopyState] = useState('') // '' | 'copied' | 'failed'
+
+  async function copy() {
+    const ok = await copyText(value)
+    setCopyState(ok ? 'copied' : 'failed')
+    if (ok) setTimeout(() => setCopyState(''), 2000)
+  }
+
+  return (
+    <div className="rounded-xl bg-secondary/10 p-4 text-center">
+      <p className="text-base text-gray-700">{label}</p>
+      <p className={`font-bold tabular-nums tracking-wide text-gray-900 ${valueClassName}`}>{display}</p>
+      <button
+        type="button"
+        onClick={copy}
+        className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-base font-medium text-gray-700 transition hover:bg-gray-50"
+      >
+        {copyState === 'copied' ? copiedLabel : copyLabel}
+      </button>
+      {copyState === 'failed' && (
+        <p className="mt-2 text-base text-gray-700" role="status">
+          {failedMessage}
+        </p>
+      )}
+    </div>
+  )
+}
+
 // Shown after a successful pledge: thanks, summary and how to pay.
 export default function Confirmation({ pledge, settings, onAgain }) {
   const headingRef = useRef(null)
-  const [copyState, setCopyState] = useState('') // '' | 'copied' | 'failed'
 
   useEffect(() => {
     headingRef.current?.focus()
   }, [])
-
-  async function copySinpe() {
-    const ok = await copyText(settings.sinpe_number)
-    setCopyState(ok ? 'copied' : 'failed')
-    if (ok) setTimeout(() => setCopyState(''), 2000)
-  }
 
   return (
     <section className="space-y-5 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200 sm:p-6">
@@ -75,30 +112,27 @@ export default function Confirmation({ pledge, settings, onAgain }) {
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-xl font-semibold text-primary">¿Cómo pagar?</h3>
-        {settings.payment_instructions ? (
+        <h3 className="text-xl font-semibold text-primary">¿Cómo puedes pagar?</h3>
+        {settings.payment_instructions && (
           <p className="whitespace-pre-line text-lg text-gray-800">{settings.payment_instructions}</p>
-        ) : (
-          !settings.sinpe_number && <p className="text-lg text-gray-800">Le contactaremos para coordinar el pago.</p>
         )}
         {settings.sinpe_number && (
-          <div className="rounded-xl bg-secondary/10 p-4 text-center">
-            <p className="text-base text-gray-700">SINPE Móvil</p>
-            <p className="text-3xl font-bold tabular-nums tracking-wide text-gray-900">{formatPhone(settings.sinpe_number)}</p>
-            <button
-              type="button"
-              onClick={copySinpe}
-              className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-base font-medium text-gray-700 transition hover:bg-gray-50"
-            >
-              {copyState === 'copied' ? 'Número copiado' : 'Copiar número'}
-            </button>
-            {copyState === 'failed' && (
-              <p className="mt-2 text-base text-gray-700" role="status">
-                No se pudo copiar. Por favor anote el número.
-              </p>
-            )}
-          </div>
+          <CopyBox
+            label="SINPE Móvil"
+            display={formatPhone(settings.sinpe_number)}
+            value={settings.sinpe_number}
+            valueClassName="text-3xl"
+          />
         )}
+        <CopyBox
+          label="Cuenta bancaria (IBAN colones)"
+          display={BANK_IBAN}
+          value={BANK_IBAN}
+          valueClassName="break-all text-xl sm:text-2xl"
+          copyLabel="Copiar cuenta bancaria"
+          copiedLabel="Cuenta bancaria copiada"
+          failedMessage="No se pudo copiar. Por favor anote la cuenta."
+        />
       </div>
 
       <button

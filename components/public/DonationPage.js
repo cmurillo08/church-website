@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Image from 'next/image'
 import Countdown from './Countdown.js'
 import PledgeForm from './PledgeForm.js'
 import Confirmation from './Confirmation.js'
@@ -62,6 +63,16 @@ export default function DonationPage({ initial }) {
   return (
     <main className="mx-auto w-full max-w-xl space-y-4 px-4 py-6 sm:space-y-6 sm:px-6 sm:py-10">
       <header className="text-center">
+        {/* White JPEG background; multiply blends it into the page color. */}
+        <Image
+          src="/logo.jpg"
+          alt="Dios es Fiel, Ministerio Cristiano"
+          width={850}
+          height={379}
+          priority
+          sizes="(min-width: 640px) 384px, 288px"
+          className="mx-auto mb-4 h-auto w-72 mix-blend-multiply sm:w-96"
+        />
         <h1 className="hyphens-auto break-words text-3xl font-bold text-primary sm:text-4xl">Construyamos juntos el nuevo templo</h1>
         {settings.welcome_message && (
           <p className="mt-3 whitespace-pre-line text-lg text-gray-700">{settings.welcome_message}</p>
