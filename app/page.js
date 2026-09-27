@@ -8,7 +8,7 @@ export default async function Home() {
   try {
     initial = await getPublicSnapshot()
   } catch (error) {
-    // The client keeps polling and fills in once the database answers.
+    // The client retries once on mount.
     console.error('[home] could not load snapshot', error)
   }
   return <DonationPage initial={initial} />

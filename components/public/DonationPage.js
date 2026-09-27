@@ -6,10 +6,8 @@ import Countdown from './Countdown.js'
 import PledgeForm from './PledgeForm.js'
 import Confirmation from './Confirmation.js'
 
-const POLL_MS = 10000
-
-// Public page shell: keeps the snapshot fresh by polling while the tab is
-// visible, and switches between the pledge form and the confirmation.
+// Public page shell: shows the snapshot loaded with the page (no polling),
+// reloads it after a pledge, and switches between the form and the confirmation.
 export default function DonationPage({ initial }) {
   const [snapshot, setSnapshot] = useState(initial)
   const [pledge, setPledge] = useState(null)
@@ -19,37 +17,15 @@ export default function DonationPage({ initial }) {
       const res = await fetch('/api/public/items', { cache: 'no-store' })
       if (res.ok) setSnapshot(await res.json())
     } catch {
-      // Keep showing the last numbers; the next poll will retry.
+      // Keep showing the last numbers.
     }
   }, [])
 
+  // Server render failed: fetch once from the client instead.
   useEffect(() => {
-    let timer = null
-    const start = () => {
-      if (timer == null) timer = setInterval(refresh, POLL_MS)
-    }
-    const stop = () => {
-      clearInterval(timer)
-      timer = null
-    }
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        refresh()
-        start()
-      } else {
-        stop()
-      }
-    }
-
-    // Server render failed: retry right away instead of waiting a full poll.
-    const retry = initial ? null : setTimeout(refresh, 0)
-    if (document.visibilityState === 'visible') start()
-    document.addEventListener('visibilitychange', onVisibility)
-    return () => {
-      clearTimeout(retry)
-      stop()
-      document.removeEventListener('visibilitychange', onVisibility)
-    }
+    if (initial) return
+    const retry = setTimeout(refresh, 0)
+    return () => clearTimeout(retry)
   }, [initial, refresh])
 
   function handleSuccess(result) {
