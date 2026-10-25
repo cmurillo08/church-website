@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { inputClass, primaryButton } from '../../../../components/admin/buttons.js'
 import { adminFetch } from '../../../../lib/admin-fetch.js'
+import { REMINDER_PLACEHOLDERS, renderReminder } from '../../../../lib/reminders.js'
 
 const FIELDS = [
   {
@@ -23,7 +24,23 @@ const FIELDS = [
     help: '8 números. Déjelo vacío para no mostrarlo.',
     multiline: false,
   },
+  {
+    key: 'reminder_message',
+    label: 'Mensaje de recordatorio (WhatsApp)',
+    help: `Se usa en Notificaciones. Puede incluir: ${REMINDER_PLACEHOLDERS.map((p) => `${p.token} (${p.help})`).join(', ')}. Si lo deja vacío se usa el mensaje por defecto.`,
+    multiline: true,
+    preview: true,
+  },
 ]
+
+const PREVIEW_SAMPLE = {
+  name: 'María Pérez',
+  totalCrc: 24000,
+  lines: [
+    { quantity: 2, item_name: 'Saco de cemento' },
+    { quantity: 3, item_name: 'Block' },
+  ],
+}
 
 export default function ConfiguracionPage() {
   const [values, setValues] = useState(null)
@@ -110,6 +127,12 @@ export default function ConfiguracionPage() {
                 <p id={`${id}-help`} className="text-xs text-gray-500">
                   {field.help}
                 </p>
+                {field.preview && (
+                  <div className="rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Vista previa</p>
+                    <p className="mt-1 whitespace-pre-line break-words">{renderReminder(values[field.key], PREVIEW_SAMPLE)}</p>
+                  </div>
+                )}
                 {errors[field.key] && (
                   <p className="text-sm text-red-700" role="alert">
                     {errors[field.key]}

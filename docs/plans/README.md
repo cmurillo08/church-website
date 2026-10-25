@@ -14,7 +14,8 @@ One row per phase. Update **Status** as work lands — first thing to check in a
 | 7 — Bug fixing | [phase-7-bug-fixing.md](phase-7-bug-fixing.md) | ✅ Done | All 20 findings (A1–A11, M1–M9) fixed and re-tested (2026-09-25). Rule change: only pending donations can be cancelled. Re-check "Copiar número" on a phone once deployed (https). |
 | 8 — Deployment & polish | [phase-8-deployment.md](phase-8-deployment.md) | ✅ Done | Live at https://church-website-seven-kappa.vercel.app/ (2026-09-25). Neon `church_donations` via the direct (non-pooler) URL, 3 migrations, no seed data; Stage B smoke test passed; section D of Phase 6 passed on production. Polish: `app/icon.svg` favicon, `app/opengraph-image.js` share card, Open Graph metadata; name/palette kept as placeholders. Countdown always shows item tabs, even with a single item. QR code for the URL generated outside the repo. |
 | 9 — Admin reports | [phase-9-admin-reports.md](phase-9-admin-reports.md) | ✅ Done | `/admin/reportes`: per-item ring chart (goal / pledged / received, hover or tap for colones), active items only, filter by item, total tiles. Counter query now also returns `received`, `pledged_crc`, `received_crc`. |
-| — | [deferred-whatsapp-reminders.md](deferred-whatsapp-reminders.md) | 🚫 Deferred | Automated WhatsApp reminders; manual via CSV for now. |
+| 10 — Notificaciones | [phase-10-notifications.md](phase-10-notifications.md) | ✅ Done | `/admin/notificaciones`: pending pledges with a WhatsApp (`wa.me`) link per person and an editable message template (Configuración, placeholders `{nombre}` `{detalle}` `{monto}`); `donations.reminded_at` marks who was reminded. Migration `20261025_…`. |
+| — | [deferred-whatsapp-reminders.md](deferred-whatsapp-reminders.md) | 🚫 Deferred | Automated WhatsApp reminders via the Business API; the manual click-to-chat version landed in Phase 10. |
 
 ## Status legend
 - ⬜ Not started
