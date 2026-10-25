@@ -7,6 +7,7 @@ const LINKS = [
   { href: '/admin', label: 'Donaciones' },
   { href: '/admin/articulos', label: 'Artículos' },
   { href: '/admin/reportes', label: 'Reportes' },
+  { href: '/admin/notificaciones', label: 'Notificaciones' },
   { href: '/admin/configuracion', label: 'Configuración' },
 ]
 
